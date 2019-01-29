@@ -11,6 +11,7 @@ import android.widget.TextView;
 import com.cumulations.alltogetherapp.R;
 import com.cumulations.alltogetherapp.model.Record;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder> {
@@ -18,9 +19,15 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
     private Context context;
     private List<Record> records;
 
-    public UserAdapter(Context context, List<Record> records) {
+    public UserAdapter(Context context) {
         this.context = context;
+        this.records=new ArrayList<Record>();
+    }
+
+
+    public void updateDataSetChange(List<Record> records) {
         this.records = records;
+        notifyDataSetChanged();
     }
 
     @NonNull
@@ -35,7 +42,7 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
         Record record = records.get(i);
         userViewHolder.tv_first_name.setText(record.getFirstName());
         userViewHolder.tv_last_name.setText(record.getLastName());
-        userViewHolder.tv_age.setText(""+record.getAge());
+        userViewHolder.tv_age.setText("" + record.getAge());
     }
 
     @Override

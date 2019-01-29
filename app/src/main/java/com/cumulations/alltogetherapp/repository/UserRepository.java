@@ -10,8 +10,10 @@ import com.cumulations.alltogetherapp.model.Record;
 import com.cumulations.alltogetherapp.model.User;
 import com.cumulations.alltogetherapp.remote.APIService;
 import com.cumulations.alltogetherapp.remote.RetroClass;
+import com.cumulations.alltogetherapp.room.UserDao;
 import com.cumulations.alltogetherapp.room.UserDb;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import io.reactivex.Completable;
@@ -35,7 +37,6 @@ public class UserRepository {
     }
 
     public void getUserList() {
-
         APIService apiService = RetroClass.getAPIService();
         Call<User> userCall = apiService.getUserList();
         userCall.enqueue(new Callback<User>() {
@@ -47,12 +48,23 @@ public class UserRepository {
                 Completable.fromAction(new Action() {
                     @Override
                     public void run() throws Exception {
+                        List<Record> records = new ArrayList<Record>();
                         for (int i = 0; i <= response.body().getRecords().size(); i++) {
                             Record record = new Record();
                             record.setFirstName(response.body().getRecords().get(i).getFirstName());
                             record.setLastName(response.body().getRecords().get(i).getLastName());
                             record.setAge(response.body().getRecords().get(i).getAge());
-                            userDb.userDao().insertAll(record);
+                            record.setId(response.body().getRecords().get(i).getId());
+                            records.add(record);
+                        }
+                        if (userDb.userDao().getAll().getValue().isEmpty()) {
+                            for (int i = 0; i < records.size(); i++) {
+                                userDb.userDao().insertAll4theFirstTime(records.get(i));
+                            }
+                        } else {
+                            for (int i = 0; i < records.size(); i++) {
+                                userDb.userDao().updateRecord(records.get(i));
+                            }
                         }
                     }
                 }).observeOn(AndroidSchedulers.mainThread()).subscribeOn(Schedulers.io()).subscribe(new CompletableObserver() {
@@ -82,7 +94,6 @@ public class UserRepository {
         });
 
     }
-
 
     public LiveData<List<Record>> getListLiveData() {
         listLiveData = userDb.userDao().getAll();

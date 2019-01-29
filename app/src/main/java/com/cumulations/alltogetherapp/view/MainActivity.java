@@ -10,7 +10,6 @@ import android.support.v7.widget.RecyclerView;
 
 import com.cumulations.alltogetherapp.R;
 import com.cumulations.alltogetherapp.model.Record;
-import com.cumulations.alltogetherapp.repository.UserRepository;
 import com.cumulations.alltogetherapp.view.adapter.UserAdapter;
 import com.cumulations.alltogetherapp.viewModel.UserViewModel;
 
@@ -22,20 +21,24 @@ public class MainActivity extends AppCompatActivity {
     private UserAdapter userAdapter;
     private SwipeRefreshLayout swipeRefreshLayout;
     private RecyclerView recyclerView;
-    private UserRepository userRepository;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        userRepository = new UserRepository(this);
-        userRepository.getUserList();
-
         recyclerView = findViewById(R.id.recyclerView);
-        swipeRefreshLayout = findViewById(R.id.refresh);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView.setHasFixedSize(true);
+
         userViewModel = new UserViewModel(this);
+        userViewModel.getUserList();//api call and get the data
+
+        userAdapter = new UserAdapter(MainActivity.this);
+        recyclerView.setAdapter(userAdapter);
+
         callData();
+        swipeRefreshLayout = findViewById(R.id.refresh);
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
@@ -46,13 +49,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void callData() {
-        userViewModel.getUsers();
         userViewModel.getUserListliveData().observe(this, new Observer<List<Record>>() {
             @Override
             public void onChanged(@Nullable List<Record> records) {
-                userAdapter = new UserAdapter(MainActivity.this, records);
-                recyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this));
-                recyclerView.setAdapter(userAdapter);
+                userAdapter.updateDataSetChange(records);
             }
         });
     }
